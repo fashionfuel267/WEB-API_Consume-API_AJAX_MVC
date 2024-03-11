@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consume Web API Client</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" >
+</head>
+<body>
+    <div class="container">
+    <div >
+        <button class="btn btn-primary float-right" id="btnadd"> ADD</button>
+    </div>
+    <table class="table table-active" id="data">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>....</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="staticBackdropLabel">Modal title</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <fieldset>
+                <legend>Enter Product</legend>
+                <div class="input-group">
+                    <label class="form-label">Name</label>
+                    <span class="input-group-text" id="basic-addon1">
+                        <i class="user"></i>
+                    </span>
+                    <input type="hidden" id="txtId" class="form-control" />
+                    <input type="text" id="txtName" class="form-control" />
+                </div>
+                <div class="input-group">
+                    <label class="form-label">Description</label>
+                    <span class="input-group-text" id="basic-addon1">
+                        <i class="user"></i>
+                    </span>
+                     
+                    <input type="text" id="txtDescription" class="form-control" />
+                </div>
+                <!-- <div>
+                    <button type="button" id="btnSave" class="btn btn-primary">Save</button>
+                    <button type="button" id="btnUpdate" class="btn btn-primary">Update</button>
+                    <button type="button" id="btnreset">Reset</button>
+                </div> -->
+            </fieldset>
+        </div>
+        <div class="modal-footer">
+         
+          <div>
+            <button type="button" id="btnSave" class="btn btn-primary">Save</button>
+            <button type="button" id="btnUpdate" class="btn btn-primary">Update</button>
+            <button type="button" id="btnreset" class="btn btn-info">Reset</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+    <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" ></script>
+    <script>
+$(document).ready(function(){
+    $("#btnUpdate").hide()
+            $("#btnSave").show()
+    load();
+    $("#btnadd").click(function(){
+        $("#btnUpdate").hide()
+            $("#btnSave").show()
+        $("#staticBackdrop").modal('show')
+    })
+    $("#btnSave").click(function () {
+                save();
+            })
+            $("#btnreset").click(function () {
+                clearAll();
+            })
+            $("#btnUpdate").click(function () {
+                Update();
+            })
+})
+function load() {
+            $.get("https://localhost:44324/api/Products/", function (data, status) {
+                console.log(data)
+                let tr = "";
+                $.each(data, function (i, v) {
+                    console.log(i)
+                    console.log(v)
+                    tr += "<tr><td>" + v.Id + "</td><td>" + v.Name + "</td><td class='col-md-7'><button type='button' onclick='Edit("+ v.Id+")'   class='btn btn-secondary mr-3'>Edit</button>"+
+                        "<button type='button' class='btn btn-danger' onclick='Delete(" + v.Id +")'>Delete</button></td></tr>"
+                })
+                $("#data tbody").html(tr);
+            })
+        }
+        function save() {
+
+         
+            var data = {
+                Name: $("#txtName").val(),
+           
+             Description:$("#txtDescription").val()
+            }
+            $.post("https://localhost:44324/api/Products/", data,function (data, status) {
+                console.log(data)
+                let tr = "";
+                $.each(data, function (i, v) {
+                    load();
+                    clearAll();
+                    $("#staticBackdrop").modal('hide')
+                })
+                /*$("#data tbody").html(tr);*/
+            })
+        }
+        function clearAll() {
+            $("#txtName").val(" ")
+            $("#txtDescription").val("")
+            $("#btnUpdate").hide()
+            $("#btnSave").show()
+        }
+        function Edit(id) {
+            $.get("https://localhost:44324/api/Products/"+ id, function (data, status) {
+                console.log(data)
+                $("#txtName").val(data.Name)
+                $("#txtDescription").val(data.Description)
+                $("#txtId").val(data.Id)
+                $("#btnUpdate").show()
+                $("#btnSave").hide()
+                $("#staticBackdrop").modal('show')
+            })
+        }
+        function Delete(id) {
+           
+            $.ajax({
+                url:"https://localhost:44324/api/Products/"+ id,
+                type:"DELETE",
+                success:function(data){
+                    load();
+                   
+                },
+                error:function(er){
+                    console.log(er.responseText)
+                }
+            })
+        }
+        function Update() {
+
+            var data = {
+                Name: $("#txtName").val(),
+             Id:$("#txtId").val(),
+             Description:$("#txtDescription").val()
+            }
+            // $.put("https://localhost:44324/api/Products/", data, function (data, status) {
+            //     console.log(data)
+            //     let tr = "";
+            //     $.each(data, function (i, v) {
+            //         load();
+            //         clearAll();
+            //         $("#staticBackdrop").modal('hide')
+            //     })
+                 
+            // })
+            $.ajax({
+                url:"https://localhost:44324/api/Products/"+$("#txtId").val(),
+                type:"PUT",
+                data:data,
+                success:function(data){
+                    load();
+                    clearAll();
+                    $("#staticBackdrop").modal('hide')
+                },
+                error:function(er){
+                    console.log(er.responseText)
+                }
+            })
+        }
+    </script>
+</body>
+</html>
